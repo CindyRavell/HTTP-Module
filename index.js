@@ -21,15 +21,17 @@ const server = http.createServer((req, res) => {
   let fullURL = new URL(urlfull(req));
   let host = fullURL.host;
   let path = fullURL.pathname;//withoutquery
-  //console.log(fullURL)
 
+ 
   // View the number
   if (url === '/myNumber' && method === 'GET') {
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify(number));
   }
+
+
   // Create the number
-  else if (url === '/myNumber' && method === 'POST') {
+  else if (method === 'POST' && url === '/myNumber' ) {
     const body = [];
     
     req.on('data', (chunk) => {
@@ -55,7 +57,7 @@ const server = http.createServer((req, res) => {
 
   // Update a current number
 
-  else if (path.match(/myNumber/)[0]==="myNumber" && method === 'PUT') {
+  else if (method === 'PUT' && path.match(/myNumber/)[0]==="myNumber" ) {
     const numberMultiplier = url.split('/')[2];
 
     if(numberMultiplier === undefined || numberMultiplier ===''){
@@ -86,7 +88,7 @@ const server = http.createServer((req, res) => {
   }
 
   // Delete a current number
-  else if (url === '/reset' && method === 'DELETE') {
+  else if (method === 'DELETE' && url === '/reset') {
     const animalId = parseInt(url.split('/')[2], 10);
     if (number[0].myNumber) {
       delete number[0].myNumber;
@@ -96,10 +98,11 @@ const server = http.createServer((req, res) => {
       return res.end('It is already empty!');
     }
   }
+
   else {
-    res.statusCode = 404;
-    res.end('Resource not found');
-    }
+  res.statusCode = 404;
+  res.end('Resource not found');
+  }
   
 });
 
