@@ -16,7 +16,7 @@ const PORT = 9000;
 
 const server = http.createServer((req, res) => {
   const { url, method, headers} = req; 
-  console.log(headers.host)
+  
   
   let fullURL = new URL(urlfull(req));
   let host = fullURL.host;
@@ -28,8 +28,8 @@ const server = http.createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify(number));
   }
-  // Update the number
-  if (url === '/myNumber' && method === 'POST') {
+  // Create the number
+  else if (url === '/myNumber' && method === 'POST') {
     const body = [];
     
     req.on('data', (chunk) => {
@@ -39,44 +39,55 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
       parsedBody = Buffer.concat(body).toString();
       parsedBody = JSON.parse(parsedBody);
-      number[0].myNumber= parsedBody.myNumber
+      const numberTemp = parsedBody.myNumber
+      if(typeof(numberTemp) === "number"){
+        number[0].myNumber= parsedBody.myNumber
+        res.setHeader('Content-Type', 'application/json');
+        res.statusCode = 201;
+        return res.end(JSON.stringify(number));
+      }
+      else{
+      res.statusCode = 400;
+      return res.end("Invalid Number");
+      }
     });
-
-    res.setHeader('Content-Type', 'application/json');
-    res.statusCode = 201;
-    return res.end(JSON.stringify(number));
   }
 
-
-
   // Update a current number
-  if (method === 'PUT') {
+
+  else if (path.match(/myNumber/)[0]==="myNumber" && method === 'PUT') {
     const numberMultiplier = url.split('/')[2];
-    console.log(numberMultiplier)
+
     if(numberMultiplier === undefined || numberMultiplier ===''){
-      res.statusCode = 404
-      return res.end('There is not number');
+      res.statusCode = 400
+      return res.end('You have to send a number');
     }
+
+    if(number[0].myNumber === undefined){
+      res.statusCode = 400;
+      return res.end('We do not have a number');
+    }
+    if(number.length === 0 ){
+      res.statusCode = 404;
+      return res.end('value no found');
+    }
+    
     if(numberMultiplier.match(/^([0-9])*$/)){
       number[0].myNumber = number[0].myNumber * numberMultiplier
       res.setHeader('Content-Type', 'application/json');
       res.statusCode = 201;
       return res.end(JSON.stringify(number));
     }
-    
-    if(number.length === 0){
-      res.statusCode = 400;
-      return res.end('We do not have something :c');
-    }
+  
 
-    res.statusCode = 404
+    res.statusCode = 400
     return res.end('invalid Number');
     
   }
+
   // Delete a current number
-  if ( method === 'DELETE') {
+  else if (url === '/reset' && method === 'DELETE') {
     const animalId = parseInt(url.split('/')[2], 10);
-    console.log(number.length)
     if (number[0].myNumber) {
       delete number[0].myNumber;
       return res.end('number deleted successfully');
@@ -85,10 +96,14 @@ const server = http.createServer((req, res) => {
       return res.end('It is already empty!');
     }
   }
-  res.statusCode = 404;
-  res.end('Resource not found');
+  else {
+    res.statusCode = 404;
+    res.end('Resource not found');
+    }
+  
 });
 
+
 server.listen(PORT, null, null, () => {
-  console.log('listening');
+  console.log('listening at 9000');
 });
